@@ -1,0 +1,40 @@
+//For this project, write a smart contract that implements the require(), assert() and revert() statements.
+
+
+// SPDX-License-Identifier:MIT
+
+pragma solidity ^0.8.0;
+
+contract ErrorHandling {
+    uint256 public value;
+
+    //Modifier to check if the caller is a specific address
+    address public owner;
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    //Use of require()
+    function setValue(uint256 _value)public {
+        require(_value>0, "Value must be greater than zero");
+        value = _value;
+    }
+
+    //use of assert()
+    function doubleValue()public view returns (uint256) {
+        uint256 doubledValue = value*2;
+
+        assert(doubledValue>value);
+        return doubledValue;
+    }
+
+
+    //use of revert() 
+    function resetValue() public {
+        if(msg.sender != owner) {
+            revert("Caller is not the owner");
+        }
+        value = 0;
+    }
+}
