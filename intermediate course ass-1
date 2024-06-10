@@ -1,40 +1,70 @@
 //For this project, write a smart contract that implements the require(), assert() and revert() statements.
 
-
-// SPDX-License-Identifier:MIT
-
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract ErrorHandling {
-    uint256 public value;
+contract Bank {
+    mapping(address => uint256) private balances;
+    address[] private accounts;
+    
+    // Event for making deposits
+    event Deposit(address indexed account, uint256 amount);
+    
+    // Event for making withdrawals
+    event Withdrawal(address indexed account, uint256 amount);
 
-    //Modifier to check if the caller is a specific address
-    address public owner;
-
-    constructor() {
-        owner = msg.sender;
-    }
-
-    //Use of require()
-    function setValue(uint256 _value)public {
-        require(_value>0, "Value must be greater than zero");
-        value = _value;
-    }
-
-    //use of assert()
-    function doubleValue()public view returns (uint256) {
-        uint256 doubledValue = value*2;
-
-        assert(doubledValue>value);
-        return doubledValue;
-    }
-
-
-    //use of revert() 
-    function resetValue() public {
-        if(msg.sender != owner) {
-            revert("Caller is not the owner");
+    // Function to deposit 
+    function deposit() external payable {
+        require(msg.value > 0, "Deposit amount must be greater than zero");
+        
+        // If this is a new account, add it to the accounts array
+        if (balances[msg.sender] == 0) {
+            accounts.push(msg.sender);
         }
-        value = 0;
+        
+        balances[msg.sender] += msg.value;
+        emit Deposit(msg.sender, msg.value);
+    }
+    
+    // Function to withdraw
+    function withdraw(uint256 amount) external {
+        require(amount > 0, "Withdrawal amount must be greater than zero");
+        require(balances[msg.sender] >= amount, "Insufficient balance");
+        
+        balances[msg.sender] -= amount;
+        payable(msg.sender).transfer(amount);
+        emit Withdrawal(msg.sender, amount);
+    }
+    
+    // Function to check the balance 
+    function checkBalance() external view returns (uint256) {
+        return balances[msg.sender];
+    }
+
+    // Function to demonstrate assert
+    function checkInvariant() external view {
+        // This is a hypothetical invariant check, which should always hold true
+        uint256 totalBalance = address(this).balance;
+        
+        // Iterating through all accounts to calculate the sum of balances
+        uint256 sumBalances = 0;
+        for (uint i = 0; i < accounts.length; i++) {
+            sumBalances += balances[accounts[i]];
+        }
+        
+        // The total balance of the contract should equal the sum of all individual balances
+        assert(totalBalance == sumBalances); // This condition should always be true
+    }
+
+    // Function to demonstrate revert
+    function demoRevert(uint256 amount) external pure {
+        if (amount == 0) {
+            revert("Amount cannot be zero");
+        }
+       
     }
 }
+
+
+   
+
